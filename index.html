@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#Memhash mode benchmark</title>
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <style>
+        body {
+            color: #efefef;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #000000;
+        }
+    
+        .container {
+            color: #9c9c9c;
+            background-color: rgb(0, 0, 0);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: calc(100% - 30px);
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: clamp(20px, 5vw, 32px);
+            margin: 10px 0;
+            color: #515151;
+        }
+        h3 {
+            
+           
+            color: #b6b6b6;
+        }
+
+        button {
+            background-color: #ff6c65;
+            border: none;
+            color: #000000;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: clamp(14px, 4vw, 16px);
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            width: auto;
+            max-width: 100%;
+        }
+        button:hover {
+            background-color: #ef5f57;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #hashrate {
+            color: #fffeb3;
+            font-size: clamp(16px, 5vw, 24px);
+            margin: 15px 0;
+            font-family: monospace;
+            word-break: break-word;
+        }
+
+        .results-container {
+            margin: 15px auto;
+            text-align: left;
+            width: 100%;
+        }
+
+        .result-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            animation: fadeIn 0.5s ease-in;
+            flex-wrap: wrap;
+        }
+
+        .result-label {
+            width: 100%;
+            max-width: 120px;
+            font-weight: bold;
+            text-align: left;
+            padding: 5px 10px;
+        }
+
+        .result-bar-container {
+            flex: 1;
+            min-width: 150px;
+            height: 30px;
+            position: relative;
+            background-color: #000000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .result-bar {
+            height: 100%;
+            transition: width 1s ease-in-out;
+            border-radius: 4px;
+        }
+
+        .sonic-bar {
+            background-color: #b4b8ff;
+        }
+
+
+
+        .nitro-bar {
+            background-color: #b0f2c1;
+        }
+
+        .turbo-bar {
+            background-color: #fffeb3;
+        }
+
+        .normal-bar {
+            background-color: #999999;
+        }
+
+        .result-value {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgb(255, 255, 255);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            font-size: clamp(12px, 3.5vw, 14px);
+        }
+
+        .progress-container {
+            margin: 20px auto;
+            background: #1d1d1d;
+            border-radius: 8px;
+            padding: 4px;
+            position: relative;
+            overflow: hidden;
+            height: 40px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            width: calc(100% - 8px);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: #b0f2c1;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #b0f2c1;
+            background-size: 30px 30px;
+            animation: move 2s linear infinite;
+            border-radius: 6px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-weight: bold;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(30, 30, 30, 0.8);
+            white-space: nowrap;
+            font-size: clamp(12px, 4vw, 16px);
+        }
+
+        @keyframes move {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 30px 30px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Медиа-запросы для мобильных устройств */
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .result-row {
+                margin: 8px 0;
+            }
+
+            .result-label {
+                padding: 3px 8px;
+                font-size: 14px;
+            }
+
+            .result-bar-container {
+                height: 25px;
+            }
+
+            .progress-container {
+                height: 35px;
+                margin: 15px auto;
+            }
+        }
+
+        /* Медиа-запросы для очень маленьких экранов */
+        @media screen and (max-width: 320px) {
+            .result-label {
+                font-size: 12px;
+            }
+
+            .result-value {
+                font-size: 12px;
+            }
+
+            .progress-container {
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>#Memhash Mode Benchmark</h1>
+    <div class="container">
+        <button id="startButton">Start benchmark</button>
+        
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+            <div class="progress-text"></div>
+        </div>
+        <div class="info"></div>
+        <div id="results"></div>
+    </div>
+    <div class="info-text">
+        <h3>The benchmark will take approximately 40 seconds to complete.</h2>
+        <br>For accurate results:
+        <br>• Close resource-intensive applications
+        <br>• Disable background processes
+        <br>• Avoid using the computer during the test
+        <br>• Your device might experience slight slowdowns during the benchmark
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
